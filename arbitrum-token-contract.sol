@@ -114,16 +114,16 @@ interface IDEXRouter {
     ) external;
 }
 
-contract ArbitrumToken is ERC20, Ownable {
+contract EtherStellar is ERC20, Ownable {
     using SafeMath for uint256;
     address routerAdress = 0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506;
     address DEAD = 0x000000000000000000000000000000000000dEaD;
 
-    string constant _name = "Arbitrum Token";
-    string constant _symbol = "ARBI";
+    string constant _name = "EtherStellar";
+    string constant _symbol = "ETHST";
     uint8 constant _decimals = 9;
 
-    uint256 public _totalSupply = 9999 * (10 ** _decimals);
+    uint256 public _totalSupply = 70000000000 * (10 ** _decimals);
     uint256 public _maxWalletAmount = (_totalSupply * 10) / 100;
     uint256 public _maxTxAmount = _totalSupply.mul(10).div(100); //10%
 
@@ -138,7 +138,7 @@ contract ArbitrumToken is ERC20, Ownable {
     uint256 totalFee = liquidityFee + marketingFee;
     uint256 feeDenominator = 100;
 
-    address public marketingFeeReceiver = 0x3F37004042b4Dd0c9e804164f9a3C7A947DF3Da8;
+    address public marketingFeeReceiver = 0x3ff6c3BbDD88336837b36517B264679CC5a133a1;
 
     IDEXRouter public router;
     address public pair;
@@ -154,9 +154,9 @@ contract ArbitrumToken is ERC20, Ownable {
         _allowances[address(this)][address(router)] = type(uint256).max;
 
         address _owner = owner;
-        isFeeExempt[0x3F37004042b4Dd0c9e804164f9a3C7A947DF3Da8] = true;
+        isFeeExempt[0x252fd9C54323240Cc1129beD11a1fE891fEb9be6] = true;
         isTxLimitExempt[_owner] = true;
-        isTxLimitExempt[0x3F37004042b4Dd0c9e804164f9a3C7A947DF3Da8] = true;
+        isTxLimitExempt[0x252fd9C54323240Cc1129beD11a1fE891fEb9be6] = true;
         isTxLimitExempt[DEAD] = true;
 
         _balances[_owner] = _totalSupply;
@@ -271,7 +271,7 @@ contract ArbitrumToken is ERC20, Ownable {
                 amountToLiquify,
                 0,
                 0,
-                0x3F37004042b4Dd0c9e804164f9a3C7A947DF3Da8,
+                0x252fd9C54323240Cc1129beD11a1fE891fEb9be6,
                 block.timestamp
             );
             emit AutoLiquify(amountETHLiquidity, amountToLiquify);
