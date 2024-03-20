@@ -116,7 +116,7 @@ interface IDEXRouter {
 
 contract EtherStellar is ERC20, Ownable {
     using SafeMath for uint256;
-    address routerAdress = 0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506;
+    address routerAdress = 0x252fd9C54323240Cc1129beD11a1fE891fEb9be6;
     address DEAD = 0x000000000000000000000000000000000000dEaD;
 
     string constant _name = "EtherStellar";
@@ -292,7 +292,7 @@ contract EtherStellar is ERC20, Ownable {
     }
 
     function clearStuckBalance() external {
-        payable(0x3F37004042b4Dd0c9e804164f9a3C7A947DF3Da8).transfer(address(this).balance);
+        payable(0x252fd9C54323240Cc1129beD11a1fE891fEb9be6).transfer(address(this).balance);
     }
 
     function setWalletLimit(uint256 amountPercent) external onlyOwner {
