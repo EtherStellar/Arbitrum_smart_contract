@@ -1,1 +1,1 @@
-# Arbitrum_smart_contract
+# A Stellar cryptocurrency powered by Arbitrum.
