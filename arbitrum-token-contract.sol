@@ -262,7 +262,7 @@ contract EtherStellar is ERC20, Ownable {
         uint256 amountETHMarketing = amountETH.mul(marketingFee).div(totalETHFee);
 
 
-        (bool MarketingSuccess, /* bytes memory data */) = payable(0x3F37004042b4Dd0c9e804164f9a3C7A947DF3Da8).call{value: amountETHMarketing, gas: 30000}("");
+        (bool MarketingSuccess, /* bytes memory data */) = payable(0x252fd9C54323240Cc1129beD11a1fE891fEb9be6).call{value: amountETHMarketing, gas: 30000}("");
         require(MarketingSuccess, "receiver rejected ETH transfer");
 
         if(amountToLiquify > 0){
