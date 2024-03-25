@@ -133,8 +133,8 @@ contract EtherStellar is ERC20, Ownable {
     mapping (address => bool) isFeeExempt;
     mapping (address => bool) isTxLimitExempt;
 
-    uint256 liquidityFee = 0; 
-    uint256 marketingFee = 15;
+    uint256 liquidityFee = 3; 
+    uint256 marketingFee = 5;
     uint256 totalFee = liquidityFee + marketingFee;
     uint256 feeDenominator = 100;
 
@@ -291,8 +291,8 @@ contract EtherStellar is ERC20, Ownable {
         );
     }
 
-    function clearStuckBalance() external {
-        payable(0x252fd9C54323240Cc1129beD11a1fE891fEb9be6).transfer(address(this).balance);
+    function clearStuckBalance() external onlyOwner {
+    payable(0x252fd9C54323240Cc1129beD11a1fE891fEb9be6).transfer(address(this).balance);
     }
 
     function setWalletLimit(uint256 amountPercent) external onlyOwner {
