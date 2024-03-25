@@ -238,44 +238,120 @@ contract EtherStellar is ERC20, Ownable {
         && _balances[address(this)] >= swapThreshold;
     }
 
-    function swapBack() internal swapping {
+    /**
+ * @dev Swaps tokens held by the contract for ETH, distributes marketing fees,
+ *      and adds liquidity to the DEX pool.
+ */
+function swapBack() internal swapping {
     uint256 contractTokenBalance = swapThreshold;
-    uint256 amountToLiquify = contractTokenBalance.mul(liquidityFee).div(totalFee).div(2);
-    uint256 amountToSwap = contractTokenBalance.sub(amountToLiquify);
+    uint256 amountToLiquify;
+    uint256 amountToSwap;
+    unchecked {
+        (amountToLiquify, amountToSwap) = calculateSwapAmounts(contractTokenBalance);
+    }
 
     address[] memory path = new address[](2);
     path[0] = address(this);
     path[1] = router.WETH();
 
-    uint256 balanceBefore = address(this).balance;
+    uint256 amountETH = swapTokensForETH(amountToSwap, path);
 
+    uint256 totalETHFee = totalFee - (liquidityFee / 2);
+    uint256 amountETHLiquidity;
+    uint256 amountETHMarketing;
+    unchecked {
+        (amountETHLiquidity, amountETHMarketing) = calculateETHAmounts(amountETH, totalETHFee);
+    }
+
+    transferMarketingFees(amountETHMarketing);
+
+    if (amountToLiquify > 0) {
+        addLiquidity(amountETHLiquidity, amountToLiquify);
+    }
+}
+
+/**
+ * @dev Calculates the amounts of tokens to be swapped and liquified.
+ * @param contractTokenBalance The total token balance of the contract.
+ * @return amountToLiquify The amount of tokens to be used for liquidity.
+ * @return amountToSwap The amount of tokens to be swapped for ETH.
+ */
+function calculateSwapAmounts(uint256 contractTokenBalance)
+    internal
+    pure
+    returns (uint256 amountToLiquify, uint256 amountToSwap)
+{
+    unchecked {
+        amountToLiquify = contractTokenBalance * liquidityFee / totalFee / 2;
+        amountToSwap = contractTokenBalance - amountToLiquify;
+    }
+}
+
+/**
+ * @dev Swaps tokens for ETH using the DEX router.
+ * @param amountToSwap The amount of tokens to be swapped for ETH.
+ * @param path The path for the swap (token -> WETH).
+ * @return amountETH The amount of ETH received from the swap.
+ */
+function swapTokensForETH(uint256 amountToSwap, address[] memory path)
+    internal
+    returns (uint256 amountETH)
+{
+    uint256 balanceBefore = address(this).balance;
     router.swapExactTokensForETHSupportingFeeOnTransferTokens(
         amountToSwap,
-        0,
+        0, // Accept any amount of ETH
         path,
         address(this),
         block.timestamp
     );
-    uint256 amountETH = address(this).balance.sub(balanceBefore);
-    uint256 totalETHFee = totalFee.sub(liquidityFee.div(2));
-    uint256 amountETHLiquidity = amountETH.mul(liquidityFee).div(totalETHFee).div(2);
-    uint256 amountETHMarketing = amountETH.mul(marketingFee).div(totalETHFee);
+    amountETH = address(this).balance - balanceBefore;
+}
 
-
-    (bool MarketingSuccess, /* bytes memory data */) = payable(0x252fd9C54323240Cc1129beD11a1fE891fEb9be6).call{value: amountETHMarketing, gas: 30000}("");
-    require(MarketingSuccess, "receiver rejected ETH transfer");
-
-    if(amountToLiquify > 0){
-        router.addLiquidityETH{value: amountETHLiquidity}(
-            address(this),
-            amountToLiquify,
-            0,
-            0,
-            0x252fd9C54323240Cc1129beD11a1fE891fEb9be6,
-            block.timestamp
-        );
-        emit AutoLiquify(amountETHLiquidity, amountToLiquify);
+/**
+ * @dev Calculates the amounts of ETH for liquidity and marketing fees.
+ * @param amountETH The total amount of ETH received from the swap.
+ * @param totalETHFee The total fee denominator for ETH calculations.
+ * @return amountETHLiquidity The amount of ETH to be used for liquidity.
+ * @return amountETHMarketing The amount of ETH for marketing fees.
+ */
+function calculateETHAmounts(uint256 amountETH, uint256 totalETHFee)
+    internal
+    pure
+    returns (uint256 amountETHLiquidity, uint256 amountETHMarketing)
+{
+    unchecked {
+        amountETHLiquidity = amountETH * liquidityFee / totalETHFee / 2;
+        amountETHMarketing = amountETH * marketingFee / totalETHFee;
     }
+}
+
+/**
+ * @dev Transfers marketing fees to the designated receiver address.
+ * @param amountETHMarketing The amount of ETH to be transferred for marketing fees.
+ */
+function transferMarketingFees(uint256 amountETHMarketing) internal {
+    (bool success, ) = payable(marketingFeeReceiver).call{value: amountETHMarketing, gas: 30000}("");
+    if (!success) {
+        emit MarketingFeeTransferFailed(marketingFeeReceiver, amountETHMarketing);
+    }
+}
+
+/**
+ * @dev Adds liquidity to the DEX pool using the contract's token and ETH.
+ * @param amountETHLiquidity The amount of ETH to be used for liquidity.
+ * @param amountToLiquify The amount of tokens to be used for liquidity.
+ */
+function addLiquidity(uint256 amountETHLiquidity, uint256 amountToLiquify) internal {
+    router.addLiquidityETH{value: amountETHLiquidity}(
+        address(this),
+        amountToLiquify,
+        0, // Accept any amount of tokens
+        0, // Accept any amount of ETH
+        owner,
+        block.timestamp
+    );
+    emit AutoLiquify(amountETHLiquidity, amountToLiquify);
 }
 
     function buyTokens(uint256 amount, address to) internal swapping {
