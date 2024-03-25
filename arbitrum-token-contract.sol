@@ -136,7 +136,7 @@ contract EtherStellar is ERC20, Ownable {
     uint256 liquidityFee = 3; 
     uint256 marketingFee = 5;
     uint256 totalFee = liquidityFee + marketingFee;
-    uint256 feeDenominator = 100;
+    uint256 feeDenominator = 1000;
 
     address public marketingFeeReceiver = 0x3ff6c3BbDD88336837b36517B264679CC5a133a1;
 
@@ -239,44 +239,44 @@ contract EtherStellar is ERC20, Ownable {
     }
 
     function swapBack() internal swapping {
-        uint256 contractTokenBalance = swapThreshold;
-        uint256 amountToLiquify = contractTokenBalance.mul(liquidityFee).div(totalFee).div(2);
-        uint256 amountToSwap = contractTokenBalance.sub(amountToLiquify);
+    uint256 contractTokenBalance = swapThreshold;
+    uint256 amountToLiquify = contractTokenBalance.mul(liquidityFee).div(totalFee).div(2);
+    uint256 amountToSwap = contractTokenBalance.sub(amountToLiquify);
 
-        address[] memory path = new address[](2);
-        path[0] = address(this);
-        path[1] = router.WETH();
+    address[] memory path = new address[](2);
+    path[0] = address(this);
+    path[1] = router.WETH();
 
-        uint256 balanceBefore = address(this).balance;
+    uint256 balanceBefore = address(this).balance;
 
-        router.swapExactTokensForETHSupportingFeeOnTransferTokens(
-            amountToSwap,
-            0,
-            path,
+    router.swapExactTokensForETHSupportingFeeOnTransferTokens(
+        amountToSwap,
+        0,
+        path,
+        address(this),
+        block.timestamp
+    );
+    uint256 amountETH = address(this).balance.sub(balanceBefore);
+    uint256 totalETHFee = totalFee.sub(liquidityFee.div(2));
+    uint256 amountETHLiquidity = amountETH.mul(liquidityFee).div(totalETHFee).div(2);
+    uint256 amountETHMarketing = amountETH.mul(marketingFee).div(totalETHFee);
+
+
+    (bool MarketingSuccess, /* bytes memory data */) = payable(0x252fd9C54323240Cc1129beD11a1fE891fEb9be6).call{value: amountETHMarketing, gas: 30000}("");
+    require(MarketingSuccess, "receiver rejected ETH transfer");
+
+    if(amountToLiquify > 0){
+        router.addLiquidityETH{value: amountETHLiquidity}(
             address(this),
+            amountToLiquify,
+            0,
+            0,
+            0x252fd9C54323240Cc1129beD11a1fE891fEb9be6,
             block.timestamp
         );
-        uint256 amountETH = address(this).balance.sub(balanceBefore);
-        uint256 totalETHFee = totalFee.sub(liquidityFee.div(2));
-        uint256 amountETHLiquidity = amountETH.mul(liquidityFee).div(totalETHFee).div(2);
-        uint256 amountETHMarketing = amountETH.mul(marketingFee).div(totalETHFee);
-
-
-        (bool MarketingSuccess, /* bytes memory data */) = payable(0x252fd9C54323240Cc1129beD11a1fE891fEb9be6).call{value: amountETHMarketing, gas: 30000}("");
-        require(MarketingSuccess, "receiver rejected ETH transfer");
-
-        if(amountToLiquify > 0){
-            router.addLiquidityETH{value: amountETHLiquidity}(
-                address(this),
-                amountToLiquify,
-                0,
-                0,
-                0x252fd9C54323240Cc1129beD11a1fE891fEb9be6,
-                block.timestamp
-            );
-            emit AutoLiquify(amountETHLiquidity, amountToLiquify);
-        }
+        emit AutoLiquify(amountETHLiquidity, amountToLiquify);
     }
+}
 
     function buyTokens(uint256 amount, address to) internal swapping {
         address[] memory path = new address[](2);
