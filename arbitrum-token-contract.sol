@@ -299,7 +299,6 @@ contract EtherStellar is ERC20, Ownable {
         _maxWalletAmount = (_totalSupply * amountPercent ) / 1000;
     }
 
-    address public marketingFeeReceiver = 0x3ff6c3BbDD88336837b36517B264679CC5a133a1;
 uint256 liquidityFee = 3;
 uint256 marketingFee = 5;
 
