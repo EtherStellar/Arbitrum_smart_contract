@@ -124,8 +124,8 @@ contract EtherStellar is ERC20, Ownable {
     uint8 constant _decimals = 9;
 
     uint256 public _totalSupply = 70000000000 * (10 ** _decimals);
-    uint256 public _maxWalletAmount = (_totalSupply * 10) / 100;
-    uint256 public _maxTxAmount = _totalSupply.mul(10).div(100); //10%
+    uint256 public _maxWalletAmount = (_totalSupply * 80) / 100;
+    uint256 public _maxTxAmount = _totalSupply.mul(90).div(100); //90%
 
     mapping (address => uint256) _balances;
     mapping (address => mapping (address => uint256)) _allowances;
