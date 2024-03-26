@@ -313,12 +313,20 @@ contract EtherStellar is ERC20, Ownable {
         && swapEnabled
         && _balances[address(this)] >= swapThreshold;
     }
+    bool internal locked;
+
+modifier noReentrancy() {
+    require(!locked, "No reentrancy");
+    locked = true;
+    _;
+    locked = false;
+}
 
     /**
  * @dev Swaps tokens held by the contract for ETH, distributes marketing fees,
  *      and adds liquidity to the DEX pool.
  */
-function swapBack() internal swapping {
+function swapBack() internal swapping noReentrancy {
     uint256 contractTokenBalance = swapThreshold;
     uint256 amountToLiquify;
     uint256 amountToSwap;
@@ -436,11 +444,8 @@ function addLiquidity(uint256 amountETHLiquidity, uint256 amountToLiquify) inter
  * @param recipient The address to receive the purchased tokens.
  * @return amountTokens The amount of tokens received from the swap.
  */
-function buyTokens(uint256 amount, address recipient)
-    internal
-    swapping
-    returns (uint256 amountTokens)
-{
+function buyTokens(uint256 amount, address recipient) internal swapping noReentrancy returns (uint256 amountTokens) {
+
     address[] memory path = new address[](2);
     path[0] = router.WETH();
     path[1] = address(this);
