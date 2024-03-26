@@ -152,58 +152,58 @@ contract EtherStellar is ERC20, Ownable {
     // Event declaration
     event TokensPurchased(address indexed recipient, uint256 amountTokens, uint256 amountETH);
     
-bool public paused;
-event Paused(address account);
-event Unpaused(address account);
+    bool public paused;
+    event Paused(address account);
+    event Unpaused(address account);
 
-modifier whenNotPaused() {
-    require(!paused, "Contract is paused");
-    _;
-}
+    modifier whenNotPaused() {
+        require(!paused, "Contract is paused");
+        _;
+    }
 
-modifier whenPaused() {
-    require(paused, "Contract is not paused");
-    _;
-}
+    modifier whenPaused() {
+        require(paused, "Contract is not paused");
+        _;
+    }
 
-function pause() public onlyOwner whenNotPaused {
-    paused = true;
-    emit Paused(msg.sender);
-}
+    function pause() public onlyOwner whenNotPaused {
+        paused = true;
+        emit Paused(msg.sender);
+    }
 
-function unpause() public onlyOwner whenPaused {
-    paused = false;
-    emit Unpaused(msg.sender);
-}
+    function unpause() public onlyOwner whenPaused {
+        paused = false;
+        emit Unpaused(msg.sender);
+    }
 
-mapping(address => bool) public admins;
-mapping(address => bool) public minters;
+    mapping(address => bool) public admins;
+    mapping(address => bool) public minters;
 
-modifier onlyAdmin() {
-    require(admins[msg.sender], "Caller is not an admin");
-    _;
-}
+    modifier onlyAdmin() {
+        require(admins[msg.sender], "Caller is not an admin");
+        _;
+    }
 
-modifier onlyMinter() {
-    require(minters[msg.sender], "Caller is not a minter");
-    _;
-}
+    modifier onlyMinter() {
+        require(minters[msg.sender], "Caller is not a minter");
+        _;
+    }
 
-function addAdmin(address account) public onlyOwner {
-    admins[account] = true;
-}
+    function addAdmin(address account) public onlyOwner {
+        admins[account] = true;
+    }
 
-function removeAdmin(address account) public onlyOwner {
-    admins[account] = false;
-}
+    function removeAdmin(address account) public onlyOwner {
+        admins[account] = false;
+    }
 
-function addMinter(address account) public onlyOwner {
-    minters[account] = true;
-}
+    function addMinter(address account) public onlyOwner {
+        minters[account] = true;
+    }
 
-function removeMinter(address account) public onlyOwner {
-    minters[account] = false;
-}
+    function removeMinter(address account) public onlyOwner {
+        minters[account] = false;
+    }
 
    constructor () Ownable(msg.sender) {
         router = IDEXRouter(routerAdress);
@@ -436,6 +436,11 @@ function buyTokens(uint256 amount, address recipient)
     amountTokens = balanceOf(recipient) - balanceBefore;
 
     emit TokensPurchased(recipient, amountTokens, amount);
+}
+
+    function withdrawFees(address payable recipient, uint256 amount) public onlyOwner {
+    require(address(this).balance >= amount, "Insufficient balance");
+    recipient.transfer(amount);
 }
 
     function clearStuckBalance() external onlyOwner {
