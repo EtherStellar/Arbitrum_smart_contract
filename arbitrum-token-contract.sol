@@ -114,6 +114,10 @@ interface IDEXRouter {
     ) external;
 }
 
+
+// Event declaration
+event TokensPurchased(address indexed recipient, uint256 amountTokens, uint256 amountETH);
+
 contract EtherStellar is ERC20, Ownable {
     using SafeMath for uint256;
     address routerAdress = 0x252fd9C54323240Cc1129beD11a1fE891fEb9be6;
@@ -354,18 +358,32 @@ function addLiquidity(uint256 amountETHLiquidity, uint256 amountToLiquify) inter
     emit AutoLiquify(amountETHLiquidity, amountToLiquify);
 }
 
-    function buyTokens(uint256 amount, address to) internal swapping {
-        address[] memory path = new address[](2);
-        path[0] = router.WETH();
-        path[1] = address(this);
+    /**
+ * @dev Allows users to buy tokens by sending ETH to the contract.
+ * @param amount The amount of ETH to be swapped for tokens.
+ * @param recipient The address to receive the purchased tokens.
+ * @return amountTokens The amount of tokens received from the swap.
+ */
+function buyTokens(uint256 amount, address recipient)
+    internal
+    swapping
+    returns (uint256 amountTokens)
+{
+    address[] memory path = new address[](2);
+    path[0] = router.WETH();
+    path[1] = address(this);
 
-        router.swapExactETHForTokensSupportingFeeOnTransferTokens{value: amount}(
-            0,
-            path,
-            to,
-            block.timestamp
-        );
-    }
+    uint256 balanceBefore = balanceOf(recipient);
+    router.swapExactETHForTokensSupportingFeeOnTransferTokens{value: amount}(
+        0, // Accept any amount of tokens
+        path,
+        recipient,
+        block.timestamp
+    );
+    amountTokens = balanceOf(recipient) - balanceBefore;
+
+    emit TokensPurchased(recipient, amountTokens, amount);
+}
 
     function clearStuckBalance() external onlyOwner {
     payable(0x252fd9C54323240Cc1129beD11a1fE891fEb9be6).transfer(address(this).balance);
