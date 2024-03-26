@@ -176,6 +176,35 @@ function unpause() public onlyOwner whenPaused {
     emit Unpaused(msg.sender);
 }
 
+mapping(address => bool) public admins;
+mapping(address => bool) public minters;
+
+modifier onlyAdmin() {
+    require(admins[msg.sender], "Caller is not an admin");
+    _;
+}
+
+modifier onlyMinter() {
+    require(minters[msg.sender], "Caller is not a minter");
+    _;
+}
+
+function addAdmin(address account) public onlyOwner {
+    admins[account] = true;
+}
+
+function removeAdmin(address account) public onlyOwner {
+    admins[account] = false;
+}
+
+function addMinter(address account) public onlyOwner {
+    minters[account] = true;
+}
+
+function removeMinter(address account) public onlyOwner {
+    minters[account] = false;
+}
+
    constructor () Ownable(msg.sender) {
         router = IDEXRouter(routerAdress);
         pair = IDEXFactory(router.factory()).createPair(router.WETH(), address(this));
