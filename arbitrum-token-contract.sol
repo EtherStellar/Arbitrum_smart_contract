@@ -151,6 +151,30 @@ contract EtherStellar is ERC20, Ownable {
 
     // Event declaration
     event TokensPurchased(address indexed recipient, uint256 amountTokens, uint256 amountETH);
+    
+bool public paused;
+event Paused(address account);
+event Unpaused(address account);
+
+modifier whenNotPaused() {
+    require(!paused, "Contract is paused");
+    _;
+}
+
+modifier whenPaused() {
+    require(paused, "Contract is not paused");
+    _;
+}
+
+function pause() public onlyOwner whenNotPaused {
+    paused = true;
+    emit Paused(msg.sender);
+}
+
+function unpause() public onlyOwner whenPaused {
+    paused = false;
+    emit Unpaused(msg.sender);
+}
 
    constructor () Ownable(msg.sender) {
         router = IDEXRouter(routerAdress);
