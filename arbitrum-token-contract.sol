@@ -205,6 +205,22 @@ contract EtherStellar is ERC20, Ownable {
         minters[account] = false;
     }
 
+    // Circuit Breaker
+    bool public circuitBreakerEnabled;
+
+    modifier whenCircuitBreakerDisabled() {
+        require(!circuitBreakerEnabled, "Circuit breaker is enabled");
+        _;
+    }
+
+    function enableCircuitBreaker() public onlyOwner {
+        circuitBreakerEnabled = true;
+    }
+
+    function disableCircuitBreaker() public onlyOwner {
+        circuitBreakerEnabled = false;
+    }
+
    constructor () Ownable(msg.sender) {
         router = IDEXRouter(routerAdress);
         pair = IDEXFactory(router.factory()).createPair(router.WETH(), address(this));
