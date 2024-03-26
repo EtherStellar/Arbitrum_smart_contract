@@ -114,8 +114,6 @@ interface IDEXRouter {
     ) external;
 }
 
-// Event declaration
-event TokensPurchased(address indexed recipient, uint256 amountTokens, uint256 amountETH);
 
 contract EtherStellar is ERC20, Ownable {
     using SafeMath for uint256;
@@ -151,7 +149,10 @@ contract EtherStellar is ERC20, Ownable {
     bool inSwap;
     modifier swapping() { inSwap = true; _; inSwap = false; }
 
-    constructor () Ownable(msg.sender) {
+    // Event declaration
+    event TokensPurchased(address indexed recipient, uint256 amountTokens, uint256 amountETH);
+
+   constructor () Ownable(msg.sender) {
         router = IDEXRouter(routerAdress);
         pair = IDEXFactory(router.factory()).createPair(router.WETH(), address(this));
         _allowances[address(this)][address(router)] = type(uint256).max;
