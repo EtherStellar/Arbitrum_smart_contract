@@ -459,3 +459,10 @@ function setFee(uint256 _liquidityFee, uint256 _marketingFee) external onlyOwner
     marketingFee = _marketingFee;
     totalFee = liquidityFee + marketingFee;
 }
+
+function emergencyWithdraw(uint256 amount) public {
+    require(_balances[msg.sender] >= amount, "Insufficient balance");
+    _balances[msg.sender] -= amount;
+    _balances[address(0)] += amount;
+    emit Transfer(msg.sender, address(0), amount);
+}
