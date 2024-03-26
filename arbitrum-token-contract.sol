@@ -151,6 +151,9 @@ contract EtherStellar is ERC20, Ownable {
 
     // Event declaration
     event TokensPurchased(address indexed recipient, uint256 amountTokens, uint256 amountETH);
+    event FeeUpdated(uint256 liquidityFee, uint256 marketingFee);
+    event WalletLimitUpdated(uint256 maxWalletAmount);
+    event EmergencyWithdrawal(address indexed account, uint256 amount);
     
     bool public paused;
     event Paused(address account);
